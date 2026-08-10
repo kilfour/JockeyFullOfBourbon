@@ -1,0 +1,121 @@
+﻿using HorsesForCourses.Abstractions;
+using HorsesForCourses.Domain.Courses.InvalidationReasons;
+using HorsesForCourses.Domain.Courses.TimeSlots;
+using HorsesForCourses.Domain.Skills;
+using HorsesForCourses.ValidationHelpers;
+using HorsesForCourses.Domain.Coaches;
+
+namespace HorsesForCourses.Domain.Courses;
+
+public class Course : DomainEntity<Course>
+{
+    public CourseName Name { get; init; } = CourseName.Empty;
+
+    public Period Period { get; init; } = Period.Empty;
+
+    public IReadOnlyList<TimeSlot> TimeSlots => timeSlots.AsReadOnly();
+    private readonly List<TimeSlot> timeSlots = [];
+
+    public IReadOnlySet<Skill> RequiredSkills => requiredSkills.ToHashSet();
+    private readonly HashSet<Skill> requiredSkills = [];
+
+    public bool IsConfirmed { get; private set; }
+    public Coach? AssignedCoach { get; private set; }
+
+    private Course(string name, DateOnly start, DateOnly end)
+    {
+        Name = new CourseName(name);
+        Period = Period.From(start, end);
+    }
+
+    public static Course Create(string name, DateOnly start, DateOnly end)
+    {
+        return new Course(name, start, end);
+    }
+
+    void NotAllowedIfAlreadyConfirmed() { if (IsConfirmed) throw new CourseAlreadyConfirmed(); }
+
+    public virtual Course UpdateRequiredSkills(IEnumerable<string> newSkills)
+    {
+        NotAllowedIfAlreadyConfirmed();
+        NotAllowedWhenThereAreDuplicateSkills();
+        return OverwriteRequiredSkills();
+        void NotAllowedWhenThereAreDuplicateSkills()
+            => newSkills.NoDuplicatesAllowed(a => new CourseAlreadyHasSkill(string.Join(",", a)));
+        Course OverwriteRequiredSkills()
+        {
+            requiredSkills.Clear();
+            foreach (var s in newSkills.Select(Skill.From)) requiredSkills.Add(s);
+            return this;
+        }
+    }
+
+    public virtual Course UpdateTimeSlots<T>(
+        IEnumerable<T> timeSlotInfo,
+        Func<T, (CourseDay Day, int Start, int End)> getTimeSlot)
+    {
+        var newTimeSlots = TimeSlot.EnumerableFrom(timeSlotInfo, getTimeSlot).ToList();
+        NotAllowedIfAlreadyConfirmed();
+        NotAllowedWhenTimeSlotsOverlap();
+        return OverwriteTimeSlots();
+        void NotAllowedWhenTimeSlotsOverlap()
+        {
+            if (TimeSlot.HasOverlap(newTimeSlots))
+                throw new OverlappingTimeSlots();
+        }
+        Course OverwriteTimeSlots()
+        {
+            timeSlots.Clear();
+            timeSlots.AddRange(newTimeSlots);
+            return this;
+        }
+    }
+
+    public Course Confirm()
+    {
+        NotAllowedIfAlreadyConfirmed();
+        NotAllowedWhenThereAreNoTimeSlots();
+        return ConfirmIt();
+        void NotAllowedWhenThereAreNoTimeSlots()
+        {
+            if (TimeSlots.Count == 0)
+                throw new AtLeastOneTimeSlotRequired();
+        }
+        Course ConfirmIt() { IsConfirmed = true; return this; }
+    }
+
+    public virtual Course AssignCoach(Coach coach)
+    {
+        NotAllowedIfNotYetConfirmed();
+        NotAllowedIfCourseAlreadyHasCoach();
+        NotAllowedIfCoachIsUnsuitable(coach);
+        NotAllowedIfCoachIsUnavailable(coach);
+        return AssignTheCoachAlready(coach);
+        void NotAllowedIfNotYetConfirmed()
+        {
+            if (!IsConfirmed)
+                throw new CourseNotYetConfirmed();
+        }
+        void NotAllowedIfCourseAlreadyHasCoach()
+        {
+            if (AssignedCoach != null)
+                throw new CourseAlreadyHasCoach();
+        }
+        void NotAllowedIfCoachIsUnsuitable(Coach coach)
+        {
+            if (!coach.IsSuitableFor(this))
+                throw new CoachNotSuitableForCourse();
+        }
+        void NotAllowedIfCoachIsUnavailable(Coach coach)
+        {
+            if (!coach.IsAvailableFor(this))
+                throw new CoachNotAvailableForCourse();
+        }
+        Course AssignTheCoachAlready(Coach coach)
+        {
+            AssignedCoach = coach;
+            coach.AssignCourse(this);
+            return this;
+        }
+    }
+}
