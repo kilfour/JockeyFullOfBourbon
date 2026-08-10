@@ -6,8 +6,6 @@ public record Skill
 
     public string Value => value;
 
-    private Skill() { }
-
     private Skill(string value)
     {
         this.value = value;

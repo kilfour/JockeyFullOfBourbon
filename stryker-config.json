@@ -1,0 +1,17 @@
+{
+    "stryker-config": {
+        "project": "HorsesForCourses/HorsesForCourses.csproj",
+        "test-projects": [
+            "HorsesForCourses.Tests/HorsesForCourses.Tests.csproj"
+        ],
+        "reporters": [
+            "html",
+            "progress"
+        ],
+        "thresholds": {
+            "high": 100,
+            "low": 80,
+            "break": 0
+        }
+    }
+}

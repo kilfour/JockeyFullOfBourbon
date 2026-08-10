@@ -18,7 +18,7 @@ By completing this assignment, you should demonstrate that you can:
 - Achieve full line and branch coverage without writing tests whose only purpose is executing code.
 - Organise a test suite so that its intent and coverage are easy to navigate.
 - Remove unnecessary duplication while keeping each test understandable in isolation.
-- Use mutation testing to assess the strength of the suite beyond code coverage.
+- OPTIONAL: Use mutation testing to assess the strength of the suite beyond code coverage.
 
 ## Assignment
 
@@ -27,7 +27,7 @@ Write tests for all observable behaviour in the `HorsesForCourses` project.
 The completed suite must:
 
 - Cover every rule stated in `requirements.md`.
-- Exercise every production line and branch, reaching 100% line coverage and 100% branch coverage.
+- Exercise every in-scope handwritten production line and branch, reaching 100% line coverage and 100% branch coverage.
 - Cover both accepted and rejected operations.
 - Cover relevant boundary conditions.
 - Verify the resulting domain state, not only return values or thrown exceptions.
@@ -38,7 +38,9 @@ The completed suite must:
 
 Coverage is a completion criterion, not proof of test quality. A suite that reaches every line but does not meaningfully distinguish correct behaviour from incorrect behaviour is insufficient.
 
-Do not modify the production project as part of this assignment. When a test reveals a defect, retain the test and record the discrepancy. Do not weaken a correct assertion merely to make the suite pass against the supplied implementation.
+Production code may be modified to correct defects revealed by requirement-led tests. Before fixing a defect, retain the test that exposes it and record the discrepancy against the supplied implementation in `Defects.md`. Keep the original symptom documented after the fix, and briefly record what was changed. Do not weaken a correct assertion or alter a requirement merely to make the suite pass.
+
+The completed suite is expected to have a green baseline. Fixing documented defects is therefore part of preparing the project for meaningful coverage and mutation testing.
 
 ## Test organisation
 
@@ -66,23 +68,47 @@ For every discrepancy discovered, record:
 - The observable behaviour produced by the implementation.
 - The expected behaviour according to the requirements.
 - The test or tests that demonstrate the discrepancy.
+- Whether the defect was fixed and, if so, a concise summary of the production change.
 
-Describe symptoms and violated rules without proposing production-code fixes. Distinct tests may expose the same underlying defect; identify that relationship rather than counting every failing assertion as a separate bug.
+Describe the original symptoms and violated rules independently of any subsequent fix. Distinct tests may expose the same underlying defect; identify that relationship rather than counting every failing assertion as a separate bug.
 
 ## Coverage
 
 Generate line and branch coverage for the production project. Build output and generated files are outside the assessment scope.
 
+1. Install ReportGenerator
+   ```powershell
+   dotnet tool install --global dotnet-reportgenerator-globaltool
+   ```
+2. Run the tests with coverage
+   ```powershell
+   if (Test-Path '.\TestCoverage') {
+       Remove-Item '.\TestCoverage' -Recurse -Force
+   }
+   dotnet test HorsesForCourses.Tests\HorsesForCourses.Tests.csproj --collect:"XPlat Code Coverage" --settings coverage.runsettings --results-directory TestCoverage
+   ```
+3. Generate an HTML report using ReportGenerator:
+   ```powershell
+   if (Test-Path '.\TestReport') {
+       Remove-Item '.\TestReport' -Recurse -Force
+   }
+   reportgenerator -reports:"TestCoverage\**\coverage.cobertura.xml" -targetdir:"TestReport" -reporttypes:Html
+   start TestReport\index.html
+   ```
 Review the coverage report rather than relying only on its headline percentage. Each covered line and branch must be reached through a meaningful assertion about externally observable behaviour. Tests that invoke code without verifying its result do not satisfy this requirement.
 
 The submitted coverage result must show 100% line coverage and 100% branch coverage for the handwritten production code.
 
-## Mutation testing with Stryker.NET
+## OPTIONAL/STRETCH GOAL: Mutation testing with Stryker.NET
 
-After achieving full coverage, run [Stryker.NET](https://stryker-mutator.io/docs/stryker-net/introduction/) against the production project. Mutation testing alters the implementation in small ways and checks whether the test suite detects those changes. A surviving mutant often indicates a missing assertion, an untested boundary, or a test that executes behaviour without specifying it precisely.
+After achieving full coverage and fixing documented defects so the test suite passes, run [Stryker.NET](https://stryker-mutator.io/docs/stryker-net/introduction/) against the production project. Mutation testing requires a green initial test run, then alters the implementation in small ways and checks whether the test suite detects those changes. A surviving mutant often indicates a missing assertion, an untested boundary, or a test that executes behaviour without specifying it precisely.
+
+```powershell
+dotnet stryker --config-file stryker-config.json --skip-version-check
+```
 
 Inspect all surviving, uncovered, timed-out, and errored mutants. Strengthen the suite where a mutant represents a meaningful change in domain behaviour. Do not add tests that merely mirror the current implementation, and do not exclude valid production code simply to increase the mutation score.
 
 Some mutants may be equivalent to the original behaviour or irrelevant to the stated requirements. Document each accepted survivor and justify why no observable requirement can distinguish it. The goal is to eliminate all behaviourally meaningful surviving mutants, not to optimise a number without context.
 
-Keep the Stryker.NET configuration with the test project and include the final mutation report.
+Include the final mutation report.

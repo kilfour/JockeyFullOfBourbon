@@ -9,15 +9,12 @@ public record OfficeHour : ComparableValue<OfficeHour, int>
 
     protected override int InnerValue => Value;
 
-    private OfficeHour() { }
-
     private OfficeHour(int value)
     {
         Value = value;
     }
 
-    public static OfficeHour Empty => new(-1); // bit of a hack
-
+    public static OfficeHour Empty => new(-1);
     public static OfficeHour From(int value)
     {
         CheckValue(value);

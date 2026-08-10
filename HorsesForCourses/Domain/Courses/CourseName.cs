@@ -6,6 +6,6 @@ namespace HorsesForCourses.Domain.Courses;
 public record CourseName : DefaultString<CourseNameCanNotBeEmpty, CourseNameCanNotBeTooLong>
 {
     public CourseName(string value) : base(value) { }
-    protected CourseName() { }
+    private CourseName() { }
     public static CourseName Empty => new();
 }
