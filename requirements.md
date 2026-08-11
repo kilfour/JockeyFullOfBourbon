@@ -47,7 +47,6 @@ The domain models a lightweight training management system centered around **Coa
 ## Overlap & Availability Rules (Summary)
 
 * Two courses **overlap** for a coach when:
-
   1. Their **date periods** intersect, **and**
   2. They share at least one **weekday** where there exists a **timeslot overlap** (`Start < Other.End` and `End > Other.Start`).
 * A coach is **unavailable** for a new course if such an overlap exists with any of their currently assigned courses.
