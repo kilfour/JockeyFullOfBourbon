@@ -54,8 +54,8 @@ public class Course : DomainEntity<Course>
         IEnumerable<T> timeSlotInfo,
         Func<T, (CourseDay Day, int Start, int End)> getTimeSlot)
     {
+        NotAllowedIfAlreadyConfirmed(); // Defect (2)
         var newTimeSlots = TimeSlot.EnumerableFrom(timeSlotInfo, getTimeSlot).ToList();
-        NotAllowedIfAlreadyConfirmed();
         NotAllowedWhenTimeSlotsOverlap();
         return OverwriteTimeSlots();
         void NotAllowedWhenTimeSlotsOverlap()

@@ -1,10 +1,9 @@
 using HorsesForCourses.Domain.Coaches;
 using HorsesForCourses.Domain.Courses;
-using static HorsesForCourses.Tests.TestHelpers;
 
 namespace HorsesForCourses.Tests.CoachTests;
 
-public class CoachSuitabilityTests
+public class CoachSuitabilityTests : TestHelpers
 {
     [Fact]
     public void Coach_With_AllRequiredSkills_IsSubitable()
