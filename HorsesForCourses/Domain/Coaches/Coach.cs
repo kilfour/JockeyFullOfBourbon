@@ -31,15 +31,18 @@ public class Coach : DomainEntity<Coach>
 
     public virtual Coach UpdateSkills(IEnumerable<string> newSkills)
     {
+        List<String>? skillNames = [.. newSkills]; // One time
         NotAllowedWhenThereAreDuplicateSkills();
         OverwriteSkills();
         return this;
         void NotAllowedWhenThereAreDuplicateSkills()
-            => newSkills.NoDuplicatesAllowed(a => new CoachAlreadyHasSkill(string.Join(",", a)));
+        // Defect (3)
+        // Here is loooop on newSkills (1 time)
+            => skillNames.NoDuplicatesAllowed(a => new CoachAlreadyHasSkill(string.Join(",", a)));
         void OverwriteSkills()
         {
             skills.Clear();
-            newSkills.Select(Skill.From)
+            skillNames.Select(Skill.From) // here also looooop through newSkills (again) (((EMPTYYYY)))
                 .ToList()
                 .ForEach(a => skills.Add(a));
         }

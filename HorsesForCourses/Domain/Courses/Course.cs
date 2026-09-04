@@ -37,15 +37,19 @@ public class Course : DomainEntity<Course>
 
     public virtual Course UpdateRequiredSkills(IEnumerable<string> newSkills)
     {
+        // Store all skills in a list so they can be checked and used again without losing any skills
+        List<String> skillNames = [.. newSkills];
         NotAllowedIfAlreadyConfirmed();
         NotAllowedWhenThereAreDuplicateSkills();
         return OverwriteRequiredSkills();
         void NotAllowedWhenThereAreDuplicateSkills()
-            => newSkills.NoDuplicatesAllowed(a => new CourseAlreadyHasSkill(string.Join(",", a)));
+        // Defect (3)
+            => skillNames.NoDuplicatesAllowed(a => new CourseAlreadyHasSkill(string.Join(",", a)));
         Course OverwriteRequiredSkills()
         {
             requiredSkills.Clear();
-            foreach (var s in newSkills.Select(Skill.From)) requiredSkills.Add(s);
+            // Use the stored skills instead of reading newSkills again
+            foreach (var s in skillNames.Select(Skill.From)) requiredSkills.Add(s);
             return this;
         }
     }
