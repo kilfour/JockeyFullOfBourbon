@@ -45,11 +45,14 @@ public class Coach : DomainEntity<Coach>
         }
     }
 
+    // FIXXXX >>> was (Any) must be (All) A coach is suitable only if they cover EVERY REQUIRED SKILL..... not just one of them
     public bool IsSuitableFor(Course course)
-        => course.RequiredSkills.Any(Skills.Contains);
+        // => course.RequiredSkills.Any(Skills.Contains);
+        => course.RequiredSkills.All(Skills.Contains);
 
     public bool IsAvailableFor(Course course)
         => CheckIf.ImAvailable(this).For(course);
+    // This is design patteren called Specification patteren, which separates the COMPLEX VALIDATION logic from the underlying class.
 
     public void AssignCourse(Course course)
     {
