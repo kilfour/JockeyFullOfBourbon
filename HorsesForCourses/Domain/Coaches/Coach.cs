@@ -29,7 +29,7 @@ public class Coach : DomainEntity<Coach>
         return new(name, email);
     }
 
-    public virtual Coach UpdateSkills(IEnumerable<string> newSkills)
+    public Coach UpdateSkills(IEnumerable<string> newSkills)
     {
         NotAllowedWhenThereAreDuplicateSkills();
         OverwriteSkills();

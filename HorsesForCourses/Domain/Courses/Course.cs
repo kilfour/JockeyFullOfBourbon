@@ -35,7 +35,7 @@ public class Course : DomainEntity<Course>
 
     void NotAllowedIfAlreadyConfirmed() { if (IsConfirmed) throw new CourseAlreadyConfirmed(); }
 
-    public virtual Course UpdateRequiredSkills(IEnumerable<string> newSkills)
+    public Course UpdateRequiredSkills(IEnumerable<string> newSkills)
     {
         NotAllowedIfAlreadyConfirmed();
         NotAllowedWhenThereAreDuplicateSkills();
@@ -50,7 +50,7 @@ public class Course : DomainEntity<Course>
         }
     }
 
-    public virtual Course UpdateTimeSlots<T>(
+    public Course UpdateTimeSlots<T>(
         IEnumerable<T> timeSlotInfo,
         Func<T, (CourseDay Day, int Start, int End)> getTimeSlot)
     {
@@ -84,7 +84,7 @@ public class Course : DomainEntity<Course>
         Course ConfirmIt() { IsConfirmed = true; return this; }
     }
 
-    public virtual Course AssignCoach(Coach coach)
+    public Course AssignCoach(Coach coach)
     {
         NotAllowedIfNotYetConfirmed();
         NotAllowedIfCourseAlreadyHasCoach();
